@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="logo.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoder Zara - Fire Data Engine</title>
+    <style>
+        /* Estilo base */
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212; /* Fundo escuro */
+            color: #ffffff; /* Texto branco */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            padding: 15px;
+            background: #1e1e1e; /* Fundo mais suave */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .logo img {
+            max-width: 80px; /* Tamanho reduzido da logo */
+            height: auto;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 1.2rem; /* Tamanho reduzido do título */
+            margin-bottom: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 0.8rem; /* Tamanho reduzido do texto do label */
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            background-color: #282828; /* Fundo do campo */
+            color: #ffffff; /* Texto branco */
+            border: 1px solid #4CAF50; /* Borda verde */
+            padding: 6px; /* Padding reduzido */
+            margin: 6px 0; /* Margem reduzida */
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 0.8rem; /* Tamanho reduzido da fonte */
+        }
+        .button {
+            width: 100%;
+            padding: 8px; /* Padding reduzido */
+            color: white;
+            background-color: #4CAF50; /* Fundo verde */
+            border: none; /* Sem borda */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem; /* Tamanho reduzido da fonte */
+            margin-top: 6px; /* Margem reduzida */
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
+        }
+        .key-feature-button {
+            background-color: #4CAF50; /* Fundo verde */
+            color: white; /* Texto branco */
+        }
+        .key-feature-button:hover {
+            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
+        }
+        .footer {
+            margin-top: 10px;
+            font-size: 0.7rem; /* Tamanho reduzido do rodapé */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="/zara.png" alt="Logo Zara">
+        </div>
+        <h1>Encoder Zara</h1>
+        <label for="combinedInput">Dados e Parâmetros:</label>
+        <textarea id="combinedInput" rows="3" placeholder="Insira dados..."></textarea>
+        
+        <h2>Upload</h2>
+        <input type="file" id="fileInput" accept=".sql, .xlsx" onchange="loadFile()">
+        
+        <button class="button" onclick="processData()">Processar</button>
+        <button class="button" onclick="showDownloadOptions()">Download</button>
+        <button class="button key-feature-button" onclick="customKeyFeatures()">Adicionar Key Features</button>
+        
+        <div class="footer">
+            &copy; 2024 Lucas Januário. Todos os direitos reservados.
+        </div>
+    </div>
+
+    <script>
+        function loadFile() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    if (file.name.endsWith(".sql")) {
+                        document.getElementById("combinedInput").value += `\nConsulta SQL:\n${e.target.result}`;
+                    } else if (file.name.endsWith(".xlsx")) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: "array"});
+                            const sheetName = workbook.SheetNames[0];
+                            const sheet = workbook.Sheets[sheetName];
+                            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                            document.getElementById("combinedInput").value += `\nDados da Planilha:\n${JSON.stringify(json, null, 2)}`;
+                        } catch (error) {
+                            Swal.fire("Erro", "Falha ao processar o arquivo: " + error.message, "error");
+                        }
+                    }
+                };
+
+                if (file.name.endsWith(".sql")) {
+                    reader.readAsText(file);
+                } else if (file.name.endsWith(".xlsx")) {
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    Swal.fire("Erro", "Formato de arquivo não suportado. Use .sql ou .xlsx.", "error");
+                }
+            }
+        }
+
+        function processData() {
+            const combinedInput = document.getElementById("combinedInput").value;
+            if (!combinedInput.trim()) {
+                Swal.fire("Erro", "Por favor, insira dados!", "error");
+                return;
+            }
+
+            let structuredData = combinedInput;
+            const pythonData = transcribeToPython(structuredData);
+            const sqlData = transcribeToSQL(structuredData);
+
+            window.pythonData = pythonData;
+            window.sqlData = sqlData;
+            window.excelData = structuredData;
+
+            Swal.fire("Sucesso", "Dados processados!", "success");
+        }
+
+        function transcribeToPython(data) {
+            return `# Dados para Python\nprocessed_data = """\n${data}\n"""\n`;
+        }
+
+        function transcribeToSQL(data) {
+            return `-- Dados para SQL\n${data}\n`;
+        }
+
+        function showDownloadOptions() {
+            if (!window.pythonData || !window.sqlData || !window.excelData) {
+                Swal.fire("Erro", "Processe os dados primeiro!", "error");
+                return;
+            }
+
+            Swal.fire({
+                title: 'Selecione o formato de download',
+                showCancelButton: true,
+                confirmButtonText: 'Python',
+                denyButtonText: 'SQL',
+                cancelButtonText: 'Planilha',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    downloadFile(window.pythonData, 'dados_processados.py');
+                } else if (result.isDenied) {
+                    downloadFile(window.sqlData, 'dados_processados.sql');
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    downloadFile(window.excelData, 'dados_processados.txt');
+                }
+            });
+        }
+
+        function downloadFile(data, filename) {
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function customKeyFeatures() {
+            Swal.fire({
+                title: 'Adicionar Key Features',
+                input: 'text',
+                showCancelButton: true,
+                confirmButtonText: 'Adicionar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Insira uma Key Feature!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(`Key Feature Adicionada: ${result.value}`, '', 'success');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
