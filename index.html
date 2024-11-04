@@ -4,58 +4,61 @@
     <meta charset="UTF-8">
     <link rel="icon" href="logo.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZARA - Fire Data Engine</title>
     <style>
-        /* Base Styling */
+        /* Reset & Base Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: Arial, sans-serif;
             background: #1C1C1C; /* Dark background */
-            color: #FFFFFF; /* White text */
-            margin: 0;
+            color: #FFFFFF;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
         }
         .container {
-            width: 90%;
-            max-width: 500px;
+            width: 100%;
+            max-width: 400px;
             padding: 20px;
-            background: #282828; /* Slightly lighter background */
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+            background: #2A2A2A; /* Slightly lighter background */
+            border-radius: 8px;
             text-align: center;
         }
         .logo img {
-            max-width: 100px;
+            max-width: 80px;
             margin-bottom: 15px;
         }
         h1 {
-            font-size: 1.5rem;
-            margin: 10px 0;
-            color: #FF6F00; /* Accent color for title */
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #FF6F00; /* Accent color */
         }
         label {
-            display: block;
-            margin-bottom: 5px;
             font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: block;
+            color: #CCCCCC;
         }
         textarea, input[type="file"] {
             width: 100%;
             background-color: #333333;
             color: #ffffff;
-            border: 1px solid #FF6F00;
+            border: 1px solid #444444;
             padding: 8px;
-            margin: 10px 0;
             border-radius: 5px;
-            resize: vertical;
             font-family: monospace;
+            margin-bottom: 15px;
         }
         .button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             color: white;
-            background-color: #FF6F00;
+            background-color: #FF7F11;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -67,9 +70,23 @@
             background-color: #E65C00;
         }
         .footer {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 0.8rem;
-            color: #BBBBBB;
+            color: #888888;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1rem;
+            }
+            .button {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+            textarea {
+                font-size: 0.85rem;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -78,13 +95,12 @@
 <body>
     <div class="container">
         <div class="logo">
-            <img src="/zara.png" alt="Logo Zara">
+            <img src="/mnt/data/zara.png" alt="Logo Zara">
         </div>
         <h1>ZARA - Fire Data Engine</h1>
         <label for="combinedInput">Dados e Parâmetros:</label>
         <textarea id="combinedInput" rows="3" placeholder="Insira dados SQL para converter em Python..."></textarea>
         
-        <h2>Upload de Arquivo</h2>
         <input type="file" id="fileInput" accept=".sql, .xlsx" onchange="loadFile()">
         
         <button class="button" onclick="processData()">Converter para Python</button>
@@ -136,12 +152,10 @@
                 return;
             }
 
-            // Converting SQL to Python
             let pythonCode = convertSQLtoPython(combinedInput);
 
-            // Store the Python code and JSON for Excel in global variables for download
             window.pythonData = pythonCode;
-            window.excelData = JSON.parse(combinedInput); // Store as JSON for Excel download
+            window.excelData = JSON.parse(combinedInput);
 
             Swal.fire("Sucesso", "Conversão para Python realizada!", "success");
         }
@@ -155,7 +169,6 @@
             pythonCode += sqlData;
             pythonCode += "\n'''\n";
             pythonCode += "cursor.execute(sql_query)\n\n";
-            pythonCode += "# Fetch results if SELECT query\n";
             pythonCode += "resultados = cursor.fetchall()\n";
             pythonCode += "for linha in resultados:\n";
             pythonCode += "    print(linha)\n\n";
