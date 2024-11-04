@@ -220,6 +220,9 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
+                    const keyFeatures = JSON.parse(localStorage.getItem("keyFeatures")) || [];
+                    keyFeatures.push(result.value);
+                    localStorage.setItem("keyFeatures", JSON.stringify(keyFeatures));
                     Swal.fire(`Key Feature Adicionada: ${result.value}`, '', 'success');
                 }
             });
