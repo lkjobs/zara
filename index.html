@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -10,8 +9,8 @@
         /* Estilo base */
         body {
             font-family: Arial, sans-serif;
-            background: #121212; /* Fundo escuro */
-            color: #ffffff; /* Texto branco */
+            background: linear-gradient(135deg, #2b2b2b, #121212); /* Fundo degradê cinza */
+            color: #e0e0e0; /* Texto cinza claro */
             margin: 0;
             display: flex;
             justify-content: center;
@@ -21,63 +20,59 @@
         .container {
             width: 90%;
             max-width: 400px;
-            padding: 15px;
-            background: #1e1e1e; /* Fundo mais suave */
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            background: #1e1e1e; /* Fundo escuro */
+            border-radius: 15px; /* Bordas arredondadas */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
             text-align: center;
         }
         .logo img {
-            max-width: 80px; /* Tamanho reduzido da logo */
+            max-width: 100px; /* Tamanho da logo */
             height: auto;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         h1 {
-            font-size: 1.2rem; /* Tamanho reduzido do título */
-            margin-bottom: 5px;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #ffffff;
         }
         label {
             display: block;
-            margin-bottom: 2px;
-            font-size: 0.8rem; /* Tamanho reduzido do texto do label */
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            color: #b0b0b0;
         }
         textarea, input[type="file"] {
             width: 100%;
-            background-color: #282828; /* Fundo do campo */
-            color: #ffffff; /* Texto branco */
-            border: 1px solid #4CAF50; /* Borda verde */
-            padding: 6px; /* Padding reduzido */
-            margin: 6px 0; /* Margem reduzida */
-            border-radius: 4px;
+            background-color: #2a2a2a; /* Fundo do campo */
+            color: #e0e0e0; /* Texto branco */
+            border: none;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
             resize: vertical;
             font-family: monospace;
-            font-size: 0.8rem; /* Tamanho reduzido da fonte */
+            font-size: 0.9rem;
         }
         .button {
             width: 100%;
-            padding: 8px; /* Padding reduzido */
-            color: white;
-            background-color: #4CAF50; /* Fundo verde */
-            border: none; /* Sem borda */
-            border-radius: 4px;
+            padding: 10px;
+            color: #ffffff;
+            background-color: #ff5722; /* Tom alaranjado */
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem; /* Tamanho reduzido da fonte */
-            margin-top: 6px; /* Margem reduzida */
+            font-size: 0.9rem;
+            margin-top: 8px;
             transition: background-color 0.3s;
         }
         .button:hover {
-            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
-        }
-        .key-feature-button {
-            background-color: #4CAF50; /* Fundo verde */
-            color: white; /* Texto branco */
-        }
-        .key-feature-button:hover {
-            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
+            background-color: #e64a19; /* Tom alaranjado mais escuro */
         }
         .footer {
-            margin-top: 10px;
-            font-size: 0.7rem; /* Tamanho reduzido do rodapé */
+            margin-top: 15px;
+            font-size: 0.7rem;
+            color: #8c8c8c;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -87,18 +82,18 @@
 <body>
     <div class="container">
         <div class="logo">
-            <img src="/zara.png" alt="Logo Zara">
+            <img src="/mnt/data/zara.png" alt="Logo Zara">
         </div>
         <h1>Encoder Zara</h1>
         <label for="combinedInput">Dados e Parâmetros:</label>
         <textarea id="combinedInput" rows="3" placeholder="Insira dados..."></textarea>
         
-        <h2>Upload</h2>
+        <label for="fileInput">Upload de Arquivo:</label>
         <input type="file" id="fileInput" accept=".sql, .xlsx" onchange="loadFile()">
         
-        <button class="button" onclick="processData()">Processar</button>
-        <button class="button" onclick="showDownloadOptions()">Download</button>
-        <button class="button key-feature-button" onclick="customKeyFeatures()">Adicionar Key Features</button>
+        <button class="button" onclick="processData()">Processar Dados</button>
+        <button class="button" onclick="showDownloadOptions()">Baixar Dados</button>
+        <button class="button" onclick="customKeyFeatures()">Adicionar Key Features</button>
         
         <div class="footer">
             &copy; 2024 Lucas Januário. Todos os direitos reservados.
@@ -173,17 +168,29 @@
 
             Swal.fire({
                 title: 'Selecione o formato de download',
+                input: 'select',
+                inputOptions: {
+                    'python': 'Python',
+                    'sql': 'SQL',
+                    'planilha': 'Planilha'
+                },
+                inputPlaceholder: 'Escolha um formato',
                 showCancelButton: true,
-                confirmButtonText: 'Python',
-                denyButtonText: 'SQL',
-                cancelButtonText: 'Planilha',
+                confirmButtonText: 'Download',
             }).then((result) => {
-                if (result.isConfirmed) {
-                    downloadFile(window.pythonData, 'dados_processados.py');
-                } else if (result.isDenied) {
-                    downloadFile(window.sqlData, 'dados_processados.sql');
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    downloadFile(window.excelData, 'dados_processados.txt');
+                if (result.value) {
+                    let data, filename;
+                    if (result.value === 'python') {
+                        data = window.pythonData;
+                        filename = 'dados_processados.py';
+                    } else if (result.value === 'sql') {
+                        data = window.sqlData;
+                        filename = 'dados_processados.sql';
+                    } else if (result.value === 'planilha') {
+                        data = window.excelData;
+                        filename = 'dados_processados.txt';
+                    }
+                    downloadFile(data, filename);
                 }
             });
         }
