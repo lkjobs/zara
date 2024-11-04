@@ -1,110 +1,104 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="logo.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoder Zara - Fire Data Engine</title>
     <style>
-        /* Reset & Base Styling */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* Estilo base */
         body {
             font-family: Arial, sans-serif;
-            background: #1C1C1C; /* Dark background */
-            color: #FFFFFF;
+            background: #121212; /* Fundo escuro */
+            color: #ffffff; /* Texto branco */
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100vh;
         }
         .container {
-            width: 100%;
+            width: 90%;
             max-width: 400px;
-            padding: 20px;
-            background: #2A2A2A; /* Slightly lighter background */
+            padding: 15px;
+            background: #1e1e1e; /* Fundo mais suave */
             border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
         .logo img {
-            max-width: 80px;
-            margin-bottom: 15px;
+            max-width: 80px; /* Tamanho reduzido da logo */
+            height: auto;
+            margin-bottom: 10px;
         }
         h1 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            color: #FF6F00; /* Accent color */
+            font-size: 1.2rem; /* Tamanho reduzido do título */
+            margin-bottom: 5px;
         }
         label {
-            font-size: 0.9rem;
-            margin-bottom: 5px;
             display: block;
-            color: #CCCCCC;
+            margin-bottom: 2px;
+            font-size: 0.8rem; /* Tamanho reduzido do texto do label */
         }
         textarea, input[type="file"] {
             width: 100%;
-            background-color: #333333;
-            color: #ffffff;
-            border: 1px solid #444444;
-            padding: 8px;
-            border-radius: 5px;
+            background-color: #282828; /* Fundo do campo */
+            color: #ffffff; /* Texto branco */
+            border: 1px solid #4CAF50; /* Borda verde */
+            padding: 6px; /* Padding reduzido */
+            margin: 6px 0; /* Margem reduzida */
+            border-radius: 4px;
+            resize: vertical;
             font-family: monospace;
-            margin-bottom: 15px;
+            font-size: 0.8rem; /* Tamanho reduzido da fonte */
         }
         .button {
             width: 100%;
-            padding: 12px;
+            padding: 8px; /* Padding reduzido */
             color: white;
-            background-color: #FF7F11;
-            border: none;
-            border-radius: 5px;
+            background-color: #4CAF50; /* Fundo verde */
+            border: none; /* Sem borda */
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            margin-top: 10px;
+            font-size: 0.8rem; /* Tamanho reduzido da fonte */
+            margin-top: 6px; /* Margem reduzida */
             transition: background-color 0.3s;
         }
         .button:hover {
-            background-color: #E65C00;
+            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
+        }
+        .key-feature-button {
+            background-color: #4CAF50; /* Fundo verde */
+            color: white; /* Texto branco */
+        }
+        .key-feature-button:hover {
+            background-color: #45a049; /* Tom mais escuro ao passar o mouse */
         }
         .footer {
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #888888;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 500px) {
-            h1 {
-                font-size: 1rem;
-            }
-            .button {
-                font-size: 0.9rem;
-                padding: 10px;
-            }
-            textarea {
-                font-size: 0.85rem;
-            }
+            margin-top: 10px;
+            font-size: 0.7rem; /* Tamanho reduzido do rodapé */
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="logo">
-            <img src="/mnt/data/zara.png" alt="Logo Zara">
+            <img src="/zara.png" alt="Logo Zara">
         </div>
-        <h1>ZARA - Fire Data Engine</h1>
+        <h1>Encoder Zara</h1>
         <label for="combinedInput">Dados e Parâmetros:</label>
-        <textarea id="combinedInput" rows="3" placeholder="Insira dados SQL para converter em Python..."></textarea>
+        <textarea id="combinedInput" rows="3" placeholder="Insira dados..."></textarea>
         
+        <h2>Upload</h2>
         <input type="file" id="fileInput" accept=".sql, .xlsx" onchange="loadFile()">
         
-        <button class="button" onclick="processData()">Converter para Python</button>
+        <button class="button" onclick="processData()">Processar</button>
         <button class="button" onclick="showDownloadOptions()">Download</button>
+        <button class="button key-feature-button" onclick="customKeyFeatures()">Adicionar Key Features</button>
         
         <div class="footer">
             &copy; 2024 Lucas Januário. Todos os direitos reservados.
@@ -120,15 +114,15 @@
 
                 reader.onload = function(e) {
                     if (file.name.endsWith(".sql")) {
-                        document.getElementById("combinedInput").value = e.target.result;
+                        document.getElementById("combinedInput").value += `\nConsulta SQL:\n${e.target.result}`;
                     } else if (file.name.endsWith(".xlsx")) {
                         try {
                             const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, { type: "array" });
+                            const workbook = XLSX.read(data, {type: "array"});
                             const sheetName = workbook.SheetNames[0];
                             const sheet = workbook.Sheets[sheetName];
-                            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                            document.getElementById("combinedInput").value = JSON.stringify(json, null, 2);
+                            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                            document.getElementById("combinedInput").value += `\nDados da Planilha:\n${JSON.stringify(json, null, 2)}`;
                         } catch (error) {
                             Swal.fire("Erro", "Falha ao processar o arquivo: " + error.message, "error");
                         }
@@ -152,50 +146,44 @@
                 return;
             }
 
-            let pythonCode = convertSQLtoPython(combinedInput);
+            let structuredData = combinedInput;
+            const pythonData = transcribeToPython(structuredData);
+            const sqlData = transcribeToSQL(structuredData);
 
-            window.pythonData = pythonCode;
-            window.excelData = JSON.parse(combinedInput);
+            window.pythonData = pythonData;
+            window.sqlData = sqlData;
+            window.excelData = structuredData;
 
-            Swal.fire("Sucesso", "Conversão para Python realizada!", "success");
+            Swal.fire("Sucesso", "Dados processados!", "success");
         }
 
-        function convertSQLtoPython(sqlData) {
-            let pythonCode = "# Conversão SQL para Python\n";
-            pythonCode += "import sqlite3\n\n";
-            pythonCode += "connection = sqlite3.connect('banco_dados.db')\n";
-            pythonCode += "cursor = connection.cursor()\n\n";
-            pythonCode += "sql_query = '''\n";
-            pythonCode += sqlData;
-            pythonCode += "\n'''\n";
-            pythonCode += "cursor.execute(sql_query)\n\n";
-            pythonCode += "resultados = cursor.fetchall()\n";
-            pythonCode += "for linha in resultados:\n";
-            pythonCode += "    print(linha)\n\n";
-            pythonCode += "connection.close()\n";
-            return pythonCode;
+        function transcribeToPython(data) {
+            return `# Dados para Python\nprocessed_data = """\n${data}\n"""\n`;
+        }
+
+        function transcribeToSQL(data) {
+            return `-- Dados para SQL\n${data}\n`;
         }
 
         function showDownloadOptions() {
-            if (!window.pythonData || !window.excelData) {
+            if (!window.pythonData || !window.sqlData || !window.excelData) {
                 Swal.fire("Erro", "Processe os dados primeiro!", "error");
                 return;
             }
 
             Swal.fire({
                 title: 'Selecione o formato de download',
-                showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'Python Script',
-                denyButtonText: 'SQL Original',
-                cancelButtonText: 'Planilha Excel',
+                confirmButtonText: 'Python',
+                denyButtonText: 'SQL',
+                cancelButtonText: 'Planilha',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    downloadFile(window.pythonData, 'convertido_para_python.py');
+                    downloadFile(window.pythonData, 'dados_processados.py');
                 } else if (result.isDenied) {
-                    downloadFile(document.getElementById("combinedInput").value, 'original_sql.sql');
+                    downloadFile(window.sqlData, 'dados_processados.sql');
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    downloadExcel(window.excelData, 'dados_convertidos.xlsx');
+                    downloadFile(window.excelData, 'dados_processados.txt');
                 }
             });
         }
@@ -212,11 +200,22 @@
             URL.revokeObjectURL(url);
         }
 
-        function downloadExcel(data, filename) {
-            const worksheet = XLSX.utils.json_to_sheet(data);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
-            XLSX.writeFile(workbook, filename);
+        function customKeyFeatures() {
+            Swal.fire({
+                title: 'Adicionar Key Features',
+                input: 'text',
+                showCancelButton: true,
+                confirmButtonText: 'Adicionar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Insira uma Key Feature!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(`Key Feature Adicionada: ${result.value}`, '', 'success');
+                }
+            });
         }
     </script>
 </body>
